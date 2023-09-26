@@ -10,6 +10,7 @@ namespace Tetris
         public const int SIZE_X = 20;
         public const int SIZE_Y = 28;
         public const int FRAMES_PER_SECOND = 30;
+        public const int INPUT_FRAME_BUFFER = 2000;
 
         private static int _score = 0;
         private static int _level = 0;
@@ -25,6 +26,13 @@ namespace Tetris
         private static bool _qPressed = false;
         private static bool _ePressed = false;
         private static bool _xPressed = false;
+
+        private static int _aFrames = 0;
+        private static int _sFrames = 0;
+        private static int _dFrames = 0;
+        private static int _qFrames = 0;
+        private static int _eFrames = 0;
+        private static int _xFrames = 0;
 
         private static int _time = 0;
         private static Piece _currentPiece = PieceBag.Next();
@@ -52,127 +60,6 @@ namespace Tetris
                 DateTime currentTick = DateTime.Now;
                 Update(currentTick - _previousTick);
                 _previousTick = currentTick;
-
-                #region old
-                /*
-                for (; Time < _speeds[_level]; Time++)
-                {
-                    if (Console.KeyAvailable)
-                    {
-                        char key = Console.ReadKey().KeyChar;
-                        if (key == 'a')
-                        {
-                            grid.RemovePiece(CurrentPiece, CurrentX, CurrentY);
-                            if (grid.WouldReplace(CurrentPiece, CurrentX - 1, CurrentY))
-                            {
-                                grid.AddPiece(CurrentPiece, CurrentX, CurrentY);
-                            }
-                            else
-                            {
-                                CurrentX--;
-                                break;
-                            }
-                        }
-                        else if (key == 'd')
-                        {
-                            grid.RemovePiece(CurrentPiece, CurrentX, CurrentY);
-                            if (grid.WouldReplace(CurrentPiece, CurrentX + 1, CurrentY))
-                            {
-                                grid.AddPiece(CurrentPiece, CurrentX, CurrentY);
-                            }
-                            else
-                            {
-                                CurrentX++;
-                                break;
-                            }
-                        }
-                        else if (key == 'q')
-                        {
-                            grid.RemovePiece(CurrentPiece, CurrentX, CurrentY);
-                            if (grid.WouldReplace(CurrentPiece.RotateClockwise(), CurrentX, CurrentY))
-                            {
-                                grid.AddPiece(CurrentPiece, CurrentX, CurrentY);
-                            }
-                            else
-                            {
-                                CurrentPiece = CurrentPiece.RotateClockwise();
-                                break;
-                            }
-                        }
-                        else if (key == 'e')
-                        {
-                            grid.RemovePiece(CurrentPiece, CurrentX, CurrentY);
-                            if (grid.WouldReplace(CurrentPiece.RotateAntiClockwise(), CurrentX, CurrentY))
-                            {
-                                grid.AddPiece(CurrentPiece, CurrentX, CurrentY);
-                            }
-                            else
-                            {
-                                CurrentPiece = CurrentPiece.RotateAntiClockwise();
-                                break;
-                            }
-                        }
-                        else if (key == 's')
-                        {
-                            Time = 9999999;
-                            break;
-                        }
-                    }
-                    TicksSinceFlash += 1;
-                    if(TicksSinceFlash > 15)
-                    {
-                        if (Shown)
-                        {
-                            Console.SetCursorPosition(SIZE_X - 4, 1);
-                            Console.Write("        ");
-                            TicksSinceFlash = 0;
-                        }
-                        else if(levelFlashes > 0)
-                        {
-                            Console.SetCursorPosition(SIZE_X - 4, 1);
-                            Console.Write("LEVEL UP");
-                            levelFlashes++;
-                            TicksSinceFlash = 0;
-                        }
-                    }
-                    Thread.Sleep(1);
-                }
-                if (Time >= _speeds[_level])
-                {
-                    Time = 0;
-                    grid.RemovePiece(CurrentPiece, CurrentX, CurrentY);
-                    if (grid.WouldReplace(CurrentPiece, CurrentX, CurrentY + 1))
-                    {
-                        grid.AddPiece(CurrentPiece, CurrentX, CurrentY);
-                        int lines = grid.CheckForRows();
-                        _score += (_level + 1) * _scores[lines];
-                        _completedLines += lines;
-                        CurrentX = SIZE_X / 2 - 1;
-                        CurrentY = 1;
-                        CurrentPiece = PieceBag.Next();
-
-                        if (_completedLines > (_level + 1) * 10 && _level < 20)
-                        {
-                            _level++;
-                            Console.SetCursorPosition(0, 1);
-                            Console.Write(_level.ToString());
-                        }
-                        Console.SetCursorPosition(SIZE_X * 2 - 10, 1);
-                        string scr = _score.ToString();
-                        for(int i = scr.Length; i < 10; i++)
-                        {
-                            Console.Write("0");
-                        }
-                        Console.Write(scr);
-                    }
-                    else
-                    {
-                        grid.RemovePiece(CurrentPiece, CurrentX, CurrentY);
-                        CurrentY++;
-                    }
-                }
-                */
-                #endregion
             }
         }
 
@@ -218,7 +105,7 @@ namespace Tetris
 
         private static void Update(TimeSpan timeElapsed)
         {
-            _timeSinceLastFrame += (float)timeElapsed.TotalMilliseconds;
+            _timeSinceLastFrame += (float)timeElapsed.TotalMilliseconds / 1000f;
             CheckInputs();
             if (_timeSinceLastFrame >= 1f / FRAMES_PER_SECOND)
             {
@@ -243,30 +130,18 @@ namespace Tetris
 
         private static void CheckInputs()
         {
-            if (Console.KeyAvailable)
-            {
-                switch (Console.ReadKey().KeyChar)
-                {
-                    case 'a':
-                        _aPressed = true;
-                        break;
-                    case 's':
-                        _sPressed = true;
-                        break;
-                    case 'd':
-                        _dPressed = true;
-                        break;
-                    case 'q':
-                        _qPressed = true;
-                        break;
-                    case 'e':
-                        _ePressed = true;
-                        break;
-                    case 'x':
-                        _xPressed = true;
-                        break;
-                }
-            }
+            if (NativeKeyboard.IsKeyDown(KeyCode.A))
+                _aPressed = true;
+            if (NativeKeyboard.IsKeyDown(KeyCode.S))
+                _sPressed = true;
+            if (NativeKeyboard.IsKeyDown(KeyCode.D))
+                _dPressed = true;
+            if (NativeKeyboard.IsKeyDown(KeyCode.Q))
+                _qPressed = true;
+            if (NativeKeyboard.IsKeyDown(KeyCode.E))
+                _ePressed = true;
+            if (NativeKeyboard.IsKeyDown(KeyCode.X))
+                _xPressed = true;
         }
 
         private static void Tick(bool[] keysPressed)
@@ -282,8 +157,9 @@ namespace Tetris
 
         private static void HandleTickInputs(bool[] keysPressed)
         {
-            if (keysPressed[0])
+            if (keysPressed[0] && _aFrames <= 0)
             {
+                _aFrames = INPUT_FRAME_BUFFER;
                 _grid.RemovePiece(_currentPiece, _currentX, _currentY);
                 if (_grid.WouldReplace(_currentPiece, _currentX - 1, _currentY))
                 {
@@ -295,15 +171,17 @@ namespace Tetris
                     return;
                 }
             }
-            else if (keysPressed[1])
+            else if (keysPressed[1] && _sFrames <= 0)
             {
+                _sFrames = INPUT_FRAME_BUFFER;
                 _time = int.MaxValue;
                 _score += 1;
                 UpdateScore();
                 return;
             }
-            else if (keysPressed[2])
+            else if (keysPressed[2] && _dFrames <= 0)
             {
+                _dFrames = INPUT_FRAME_BUFFER;
                 _grid.RemovePiece(_currentPiece, _currentX, _currentY);
                 if (_grid.WouldReplace(_currentPiece, _currentX + 1, _currentY))
                 {
@@ -315,8 +193,9 @@ namespace Tetris
                     return;
                 }
             }
-            else if (keysPressed[3])
+            else if (keysPressed[3] && _qFrames <= 0)
             {
+                _qFrames = INPUT_FRAME_BUFFER;
                 _grid.RemovePiece(_currentPiece, _currentX, _currentY);
                 if (_grid.WouldReplace(_currentPiece.RotateClockwise(), _currentX, _currentY))
                 {
@@ -328,8 +207,9 @@ namespace Tetris
                     return;
                 }
             }
-            else if (keysPressed[4])
+            else if (keysPressed[4] && _eFrames <= 0)
             {
+                _eFrames = INPUT_FRAME_BUFFER;
                 _grid.RemovePiece(_currentPiece, _currentX, _currentY);
                 if (_grid.WouldReplace(_currentPiece.RotateAntiClockwise(), _currentX, _currentY))
                 {
@@ -341,11 +221,25 @@ namespace Tetris
                     return;
                 }
             }
-            else if (keysPressed[5])
+            else if (keysPressed[5] && _xFrames <= 0)
             {
+                _xFrames = INPUT_FRAME_BUFFER;
                 _hardDrop = true;
                 return;
             }
+
+            if (_aFrames > 0)
+                _aFrames--;
+            if (_sFrames > 0)
+                _sFrames--;
+            if (_dFrames > 0)
+                _dFrames--;
+            if (_qFrames > 0)
+                _qFrames--;
+            if (_eFrames > 0)
+                _eFrames--;
+            if (_xFrames > 0)
+                _xFrames--;
         }
 
         private static void HandleFlash()

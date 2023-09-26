@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Grid.cs" />
+    <Compile Include="NativeKeyboard.cs" />
     <Compile Include="Pieces\Piece.cs" />
     <Compile Include="Pieces\PieceBag.cs" />
     <Compile Include="Program.cs" />
